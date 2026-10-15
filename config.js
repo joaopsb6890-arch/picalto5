@@ -1,10 +1,12 @@
 /* Configuração do armazenamento de imagens (Cloudinary).
    Cria uma conta gratuita em https://cloudinary.com (sem cartão).
    Settings → Upload → Add upload preset → Unsigned → copia o nome.
-   Preenche os dois valores abaixo. */
+   Põe os dois valores no ficheiro .env (CLOUDINARY_CLOUD_NAME e CLOUDINARY_UNSIGNED_PRESET)
+   e corre `npm run build`. Também podes preencher aqui diretamente. */
 
-var CLOUDINARY_CLOUD_NAME = 'dwnteeamx';
-var CLOUDINARY_UNSIGNED_PRESET = 'picalto';
+var __env = (window.PICALTA_ENV || {}).cloudinary || {};
+var CLOUDINARY_CLOUD_NAME = __env.cloudName || '';
+var CLOUDINARY_UNSIGNED_PRESET = __env.unsignedPreset || '';
 
 /* ---------- Storage seguro (persistente com fallback em memória) ----------
    Em iframes sandboxed, a persistência do browser pode estar indisponível.

@@ -175,6 +175,38 @@ async function cdnUploadImage(uid, file, folder) {
   const json = await res.json();
   return json.secure_url;
 }
+/* Envio de vídeo (Reels) para o Cloudinary, com progresso. Usa o mesmo preset não assinado das imagens.
+   O preset tem de aceitar vídeo: em Settings > Upload, o preset não pode restringir o tipo de recurso. */
+function cdnUploadVideo(file, folder, onProgress) {
+  return new Promise((resolve, reject) => {
+    if (!cloudinaryConfigured()) {
+      reject(new Error('O envio de vídeos precisa do Cloudinary. Preenche CLOUDINARY_CLOUD_NAME e CLOUDINARY_UNSIGNED_PRESET no .env.'));
+      return;
+    }
+    if (!/^video\//.test(file.type)) { reject(new Error('Escolhe um ficheiro de vídeo.')); return; }
+    if (file.size > 80 * 1024 * 1024) { reject(new Error('O vídeo pode ter até 80 MB.')); return; }
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', CLOUDINARY_UNSIGNED_PRESET);
+    fd.append('folder', folder || 'picalta/reels');
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', 'https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/video/upload');
+    xhr.upload.onprogress = (e) => { if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total); };
+    xhr.onerror = () => reject(new Error('Falha de ligação durante o envio do vídeo.'));
+    xhr.ontimeout = () => reject(new Error('O envio do vídeo demorou demasiado tempo.'));
+    xhr.timeout = 5 * 60 * 1000;
+    xhr.onload = () => {
+      let j = {};
+      try { j = JSON.parse(xhr.responseText); } catch (e) {}
+      if (xhr.status >= 200 && xhr.status < 300 && j.secure_url) {
+        resolve({ url: j.secure_url, duration: j.duration || 0, width: j.width || 0, height: j.height || 0 });
+      } else {
+        reject(new Error((j.error && j.error.message) || 'Erro no envio do vídeo (HTTP ' + xhr.status + ').'));
+      }
+    };
+    xhr.send(fd);
+  });
+}
 async function stUploadImage(uid, file) {
   return cdnUploadImage(uid, file, 'picalta/posts');
 }
@@ -229,12 +261,17 @@ function dbWatchLeaderboard(callback) {
 
 /* ---------- jogos ---------- */
 const GAMES = {
-  memory: { label: 'Jogo da Memória', icon: '🧠' },
-  snake: { label: 'Snake', icon: '🐍' },
-  flappy: { label: 'Picalta Fly', icon: '🐦' },
-  g2048: { label: '2048', icon: '🔢' },
-  tictactoe: { label: 'Galo', icon: '❌' },
-  typing: { label: 'Teste de Escrita', icon: '⌨️' },
+  memory: { label: 'Jogo da Memória', icon: '🧠', cat: 'puzzle' },
+  snake: { label: 'Snake', icon: '🐍', cat: 'arcade' },
+  flappy: { label: 'Picalta Fly', icon: '🐦', cat: 'arcade' },
+  g2048: { label: '2048', icon: '🔢', cat: 'puzzle' },
+  tictactoe: { label: 'Galo', icon: '❌', cat: 'duelo' },
+  typing: { label: 'Teste de Escrita', icon: '⌨️', cat: 'reflexos' },
+  minesweeper: { label: 'Campo Minado', icon: '💣', cat: 'puzzle', hint: 'Limpa o campo' },
+  breakout: { label: 'Breakout', icon: '🧱', cat: 'arcade', hint: 'Parte os blocos' },
+  tetris: { label: 'Tetris', icon: '🧩', cat: 'arcade', hint: 'Completa linhas' },
+  pong: { label: 'Pong', icon: '🏓', cat: 'duelo', hint: 'Primeiro a 5' },
+  connect4: { label: '4 em Linha', icon: '🔴', cat: 'duelo', hint: 'Contra a IA' },
 };
 async function dbSaveScore(uid, game, score, extra) {
   const { addDoc, collection, doc, runTransaction, serverTimestamp } = __fsFns;

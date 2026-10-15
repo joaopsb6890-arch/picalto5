@@ -39,26 +39,42 @@
   const API_BASE = (typeof window.__PICALTA_API_BASE === 'string') ? window.__PICALTA_API_BASE : '';
   function apiUrl(path) { return API_BASE + path; }
 
+  /* Lê JSON com tolerância: uma página HTML (404 do hosting) não rebenta o chat */
+  async function readJson(r) {
+    const raw = await r.text();
+    try { return JSON.parse(raw); } catch (e) { return { __notJson: true, message: '' }; }
+  }
+  const NO_BACKEND = 'A função /api/picalai só existe quando o site está na Vercel (ou com "vercel dev" / "npm run dev"). Neste endereço não há servidor de IA.';
+
   async function refreshStatus() {
     const el = $('#ai-status');
     if (!el) return;
-    if(window.PICALTA_DEMO){el.textContent='Indisponível na demonstração'; status=null; return;}
+    if (window.PICALTA_DEMO) { el.textContent = 'Indisponível na demonstração'; status = null; return; }
+    el.title = '';
     try {
       const token = await getIdToken();
-      const r = await fetch(apiUrl('/api/picalai/status'), {
-        method: 'GET',
-        headers: { 'X-Firebase-Token': token || '' },
-      });
-      status = await r.json();
-      if (!status.configured) {
-        el.textContent = 'não configurado no servidor';
+      const r = await fetch(apiUrl('/api/picalai/status'), { method: 'GET', headers: { 'X-Firebase-Token': token || '' } });
+      const j = await readJson(r);
+      if (j.__notJson || typeof j.configured !== 'boolean') {
+        status = { configured: false, noBackend: true };
+        el.textContent = 'sem servidor de IA neste endereço';
+        el.title = NO_BACKEND;
+        el.style.color = 'var(--color-accent)';
+        return;
+      }
+      status = j;
+      if (!j.configured) {
+        const miss = (j.missing || []).join(', ');
+        el.textContent = 'falta configurar' + (miss ? ': ' + miss : '');
+        el.title = 'Define estas variáveis em Vercel > Settings > Environment Variables e faz Redeploy.';
         el.style.color = 'var(--color-accent)';
       } else {
-        el.textContent = 'ativo · ' + status.model;
+        el.textContent = 'ativo · ' + j.model;
         el.style.color = 'var(--color-primary)';
       }
     } catch (e) {
-      el.textContent = 'servidor offline';
+      el.textContent = 'servidor inacessível';
+      el.title = 'Não foi possível contactar /api/picalai/status. Confirma a ligação.';
       el.style.color = 'var(--color-text-faint)';
       status = null;
     }
@@ -95,14 +111,10 @@
     const text = input.value.trim();
     if (!text) return;
 
-    if (!status || !status.configured) {
-      // tenta recarregar estado antes de reclamar
-      await refreshStatus();
-      if (!status || !status.configured) {
-        toast_('O PicalAi não está configurado no servidor (defini OVERCONTROL_API_KEY).');
-        return;
-      }
-    }
+    if (window.PICALTA_DEMO) { toast_('A PicalAi não está disponível na demonstração.'); return; }
+    // O estado é só informativo: tenta sempre enviar e mostra a razão exata se falhar.
+    if (!status || status.noBackend) await refreshStatus();
+    if (status && status.noBackend) { toast_(NO_BACKEND); return; }
 
     // guarda o texto do input para restaurar em caso de falha
     const originalText = text;
@@ -127,8 +139,10 @@
         },
         body: JSON.stringify({ messages: history, userName }),
       });
-      const j = await r.json();
-      if (!r.ok) throw new Error(j.message || 'Falha');
+      const j = await readJson(r);
+      if (j.__notJson) throw new Error(r.status === 404 ? NO_BACKEND : 'Resposta inesperada do servidor (HTTP ' + r.status + ').');
+      if (!r.ok) throw new Error(j.message || 'Falha (HTTP ' + r.status + ')');
+      if (!j.reply) throw new Error('A IA devolveu uma resposta vazia.');
       history.push({ role: 'assistant', content: j.reply });
       renderMessages();
     } catch (err) {
@@ -161,7 +175,7 @@
     t.textContent = msg;
     t.classList.add('show');
     clearTimeout(toast_._t);
-    toast_._t = setTimeout(() => t.classList.remove('show'), 2600);
+    toast_._t = setTimeout(() => t.classList.remove('show'), 6000);
   }
 
   /* API exposta ao app.js */

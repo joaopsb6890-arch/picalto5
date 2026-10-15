@@ -596,6 +596,7 @@ a, button, [role='button'], input, textarea, select {
 .fav-btn.liked { color: var(--color-primary); }
 </style>
 <link rel="stylesheet" href="v5.css" />
+<link rel="stylesheet" href="reels.css" />
 </head>
 <body>
 <a class="skip-link" href="#main-content">Saltar para o conteúdo</a>
@@ -892,7 +893,7 @@ a, button, [role='button'], input, textarea, select {
           <li>Cria conta gratuita em <a href="https://cloudinary.com" target="_blank">cloudinary.com</a> (sem cartão)</li>
           <li>Dashboard → copia o <b>Cloud Name</b></li>
           <li>Settings → Upload → Add upload preset → <b>Unsigned</b> → copia o nome do preset</li>
-          <li>Cria o ficheiro <code>public/config.js</code> com esses dois valores (ver <code>public/config.example.js</code>)</li>
+          <li>Põe os dois valores no ficheiro <code>.env</code> (<code>CLOUDINARY_CLOUD_NAME</code> e <code>CLOUDINARY_UNSIGNED_PRESET</code>) e corre <code>npm run build</code> (na Vercel isto acontece sozinho)</li>
         </ol>
       </div>
       <div class="settings-card">
@@ -1154,12 +1155,14 @@ a, button, [role='button'], input, textarea, select {
 <div class="toast" id="toast" role="status"></div>
 
 <script>window.PICALTA_DEMO=true;</script>
+<script src="env-config.js"></script>
 <script src="config.js"></script>
 <script src="firebase.js"></script>
 <script src="auth.js"></script>
 <script src="data.js"></script>
 <script src="progress.js"></script>
 <script src="games.js"></script>
+<script src="games2.js"></script>
 <script src="groups.js"></script>
 <script src="picalai.js"></script>
 <script src="music-player.js"></script>
@@ -1168,6 +1171,7 @@ a, button, [role='button'], input, textarea, select {
 <script src="data-v5.js"></script>
 <script src="app.js"></script>
 <script src="v5.js"></script>
+<script src="reels.js"></script>
 <script data-pplx-inline-edit>
 (function () {
   if (window === window.top) return;

@@ -2,7 +2,7 @@
 'use strict';
 
 /* Configuração do projeto Firebase do utilizador */
-const firebaseConfig = {
+const firebaseDefaults = {
   apiKey: 'AIzaSyDtSLwYJDiL-1AOnwLDh-jxOQzG1xsDsHs',
   authDomain: 'picala-a212f.firebaseapp.com',
   projectId: 'picala-a212f',
@@ -10,6 +10,12 @@ const firebaseConfig = {
   messagingSenderId: '535197365034',
   appId: '1:535197365034:web:ddea795d1206534f53a453',
 };
+
+/* O .env (via scripts/build-config.mjs) tem prioridade, se estiver completo */
+const firebaseConfig = (function () {
+  const e = (window.PICALTA_ENV || {}).firebase || {};
+  return Object.keys(firebaseDefaults).every(function (k) { return e[k]; }) ? e : firebaseDefaults;
+})();
 
 var auth = null;
 var db = null;

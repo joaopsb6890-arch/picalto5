@@ -27,6 +27,13 @@ function initDemo() {
     ['post-me','demo-me','demo/p3.jpg','Guardar os pequenos detalhes. É por isso que gosto de fotografar.','Lisboa',['#momentos','#fotografia'],['ines','sofia','miguel']],
   ];
   posts.forEach((p,i)=>put('posts/'+p[0],{uid:p[1],imageUrl:p[2],images:p[0]==='post-mar'?[{url:p[2],alt:'Falésias portuguesas ao fim do dia'},{url:'demo/p5.jpg',alt:'Mar azul visto de cima'},{url:'demo/p4.jpg',alt:'Caminho junto a um lago'}]:[{url:p[2],alt:p[3]}],caption:p[3],location:p[4],hashtags:p[5],likes:p[6],createdAt:now-(i+1)*45*60000}));
+  [['reel-1','diogo','Só mais uma onda antes de voltar. O mar de hoje merecia ser filmado.',['#surf','#oceano','#ericeira'],['ines','tomas','lara'],20],
+   ['reel-2','miguel','Lisboa em três atos: luz, azulejo e o elétrico das seis. #lisboa #cidade',['#lisboa','#cidade'],['ines','sofia','diogo','tomas'],35],
+   ['reel-3','ines','Pequenos rituais de domingo: café quente, janela aberta e nenhum plano.',['#slowmornings','#domingo'],['sofia','lara'],55],
+   ['reel-4','tomas','O trilho que me trouxe até aqui, em onze segundos.',['#aventura','#natureza'],['ines','miguel','diogo'],80],
+   ['reel-5','lara','Bastidores de um dia criativo. O que andam a ouvir por aí?',['#musica','#criatividade'],['sofia'],110]].forEach((r,i)=>put('posts/'+r[0],{uid:r[1],type:'reel',videoUrl:'demo/reel'+(i+1)+'.mp4',imageUrl:'demo/reel'+(i+1)+'.jpg',posterUrl:'demo/reel'+(i+1)+'.jpg',images:[],caption:r[2],text:'',location:'',hashtags:r[3],likes:r[4],duration:11,aspect:0.5625,createdAt:now-r[5]*60000}));
+  put('posts/reel-1/comments/rc1',{uid:'ines',text:'Que mar. Obrigada por partilhares.',likes:[],replyTo:null,createdAt:now-900000});
+  put('posts/reel-2/comments/rc1',{uid:'sofia',text:'Alfama ao fim do dia é tudo.',likes:['miguel'],replyTo:null,createdAt:now-800000});
   put('posts/post-mar/comments/c1',{uid:'sofia',text:'Que luz incrível. Preciso de ir aí um dia destes.',likes:['tomas'],replyTo:null,createdAt:now-200000});
   put('posts/post-mar/comments/c2',{uid:'ines',text:'Ao fim da tarde fica ainda mais bonito.',likes:[],replyTo:'c1',createdAt:now-150000});
   put('posts/post-mar/comments/c3',{uid:'tomas',text:'O sítio perfeito para desligar um bocadinho.',likes:[],replyTo:null,createdAt:now-100000});
