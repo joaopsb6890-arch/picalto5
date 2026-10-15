@@ -3,8 +3,8 @@
    Settings → Upload → Add upload preset → Unsigned → copia o nome.
    Preenche os dois valores abaixo. */
 
-var CLOUDINARY_CLOUD_NAME = '';
-var CLOUDINARY_UNSIGNED_PRESET = '';
+var CLOUDINARY_CLOUD_NAME = 'dwnteeamx';
+var CLOUDINARY_UNSIGNED_PRESET = 'picalto';
 
 /* ---------- Storage seguro (persistente com fallback em memória) ----------
    Em iframes sandboxed, a persistência do browser pode estar indisponível.
